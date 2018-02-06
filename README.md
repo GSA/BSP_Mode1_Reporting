@@ -6,7 +6,7 @@ AMI report using Lambda functions and Amazon SES
 
 There are two Lambda functions.  One does a DescribeImages query for each tenant
 account, formats the data into CSV and saves the CSV to an S3 bucket.  The
-second Lambda function creates a multi-part MIME Email, and attaches the report
+second Lambda function creates a multi-part MIME Email, attaches the report
 from the S3 bucket and sends it via Amazon Simple Email Service (SES) to a list
 of recipients.
 
@@ -111,6 +111,37 @@ Allows Lambda function to read the report from an Amazon S3 bucket.
 
 `logs:CreateLogGroup`, `logs:CreateLogStream` and `logs:PutLogEvents` actions
 are required by all Lambda functions to log their actions.
+
+## Terraform Variables ##
+
+- Copy the `terraform.tfvars.example` file to `terraform.tfvars`
+- The `mgmt_account` variable isn't currently used (it is used in the tenants
+  subdirectory, see below)
+- Set the `tenant_accounts` to a comma separated list of the AWS account numbers
+for the tenant accounts you wish to query for the AMI report.
+- Set the `tenant_names` to a comma separated list of the tenant names you want
+to appear in the first column of the report to identify the tenant account. The
+names must be in the exact same order as the corresponding account number in
+`tenant_accounts` variable.
+- Set the `sender` to the Email address you want to use as the sender address.
+Note: This address must be [verified](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html) for use by SES.
+- Set the `recipients` to a comma separated list of the Email addresses you wish
+to receive the report.  Note: These addresses must be [verified](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html) for use by SES.
+
+### Tenants ###
+
+In the `tenants` sub-directory, there is a terraform file to configure the
+cross-account IAM role and policy.  To configure this:
+
+- Copy the `tenants/terraform.tfvars.example` file to `tenants/terraform.tfvars`
+- Set the `mgmt_account` variable to the account number of the account where the
+AMI reporting Lambda function will run.  For instructions on how to find the
+AWS account number, see the [AWS docs here](https://docs.aws.amazon.com/IAM/latest/UserGuide/console_account-alias.html).
+
+For each tenant account, you will need to configure your `AWS_PROFILE`
+environment variable and perform a terraform apply for each account.  You will
+need AWS credentials for each account with administrator privileges to apply
+the Terraform configuration.
 
 ## TODO ##
 
