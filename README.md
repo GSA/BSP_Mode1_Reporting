@@ -16,7 +16,7 @@ of recipients.
 
 Cross-account permissions are required for the Lambda function in the
 "management" account to query the "tenant" accounts.  This is done by creating
-an IAM role with delegation to the master account.  See the [Terraform
+an IAM role with delegation to the management account.  See the [Terraform
 configuration](tenants/iam.tf#L3) for details.
 
 ### Tenant Account Policy ###
@@ -39,7 +39,7 @@ action allowed.
 ### AMI Report Lambda Function IAM Policy ###
 
 The Lambda function which creates the AMI Report is assinged an IAM role in the
-master account with a single policy attached that allows it do perform all of
+management account with a single policy attached that allows it do perform all of
 its necessary functions.
 
 ```json
@@ -61,7 +61,7 @@ its necessary functions.
 
 ####  ec2:DescribeImages ####
 
-Allows the Lambda function to query the Images in the master account.
+Allows the Lambda function to query the Images in the management account.
 
 #### s3:PutObject ####
 
@@ -80,7 +80,7 @@ are required by all Lambda functions to log their actions.
 ### Report Emailing Lambda Function IAM Policy ###
 
 The Lambda function which Emails the AMI Report is assinged an IAM role in the
-master account with a single policy attached that allows it do perform all of
+management account with a single policy attached that allows it do perform all of
 its necessary functions.
 
 ```json
