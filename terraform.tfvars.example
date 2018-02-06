@@ -1,0 +1,5 @@
+mgmt_account = "111111111111"
+tenant_accounts = "111111111112,111111111113,111111111114"
+tenant_names = "test2,test3,test4"
+sender = "skippy@email.com"
+recipients = "mamby@email.com,pamby@email.com"

@@ -1,0 +1,19 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: hashicorp/terraform:light
+    environment:
+      # arbitrary value
+      AWS_DEFAULT_REGION: us-east-1
+    steps:
+      - checkout
+      - run:
+          name: Set up Terraform
+          command: terraform init
+      - run:
+          name: Check Terraform file format
+          command: terraform fmt
+      - run:
+          name: Validate Terraform
+          command: terraform validate
