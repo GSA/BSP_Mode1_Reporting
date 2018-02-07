@@ -1,0 +1,9 @@
+name: 'BSP_Mode1_Reporting'
+description: 'Lambda functions for creating and Emailing reports for BSP Mode1 AWS Accounts'
+license: null
+openSourceProject: 1
+governmentWideReuseProject: 0
+tags:
+    - gsa-it
+contact:
+    email: cloudmgmt@gsa.gov
