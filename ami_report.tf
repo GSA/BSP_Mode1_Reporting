@@ -1,3 +1,5 @@
+variable "mgmt_account_alias" {}
+
 variable "tenant_accounts" {}
 
 variable "tenant_names" {}
@@ -62,8 +64,8 @@ resource "aws_lambda_function" "ami_report" {
 
   environment {
     variables = {
-      ami_report_region    = "us-east-1"
       ami_report_s3_bucket = "${aws_s3_bucket.ami_report.bucket}"
+      mgmt_account_alias   = "${var.mgmt_account_alias}"
       tenant_accounts      = "${var.tenant_accounts}"
       tenant_names         = "${var.tenant_names}"
     }
@@ -71,8 +73,9 @@ resource "aws_lambda_function" "ami_report" {
 }
 
 resource "aws_s3_bucket" "ami_report" {
-  bucket = "ami_report"
-  acl    = "private"
+  bucket        = "ami_report"
+  acl           = "private"
+  force_destroy = true
 
   tags {
     Name        = "AMI Report"

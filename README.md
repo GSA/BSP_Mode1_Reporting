@@ -39,8 +39,8 @@ action allowed.
 ### AMI Report Lambda Function IAM Policy ###
 
 The Lambda function which creates the AMI Report is assinged an IAM role in the
-management account with a single policy attached that allows it do perform all of
-its necessary functions.
+management account with a single policy attached that allows it do perform all
+of its necessary functions.
 
 ```json
 "Statement": [
@@ -115,8 +115,8 @@ are required by all Lambda functions to log their actions.
 ## Terraform Variables ##
 
 - Copy the `terraform.tfvars.example` file to `terraform.tfvars`
-- The `mgmt_account` variable isn't currently used (it is used in the tenants
-  subdirectory, see below)
+- The `mgmt_account_alias` is the name which will appear in the 'Tenant' column
+of the AMI report for the AMIs in the management account.
 - Set the `tenant_accounts` to a comma separated list of the AWS account numbers
 for the tenant accounts you wish to query for the AMI report.
 - Set the `tenant_names` to a comma separated list of the tenant names you want
@@ -149,8 +149,7 @@ the Terraform configuration.
     - Add pylint to CircleCI tests
     - Fix pylint issues
     - Add [TFLint](https://github.com/wata727/tflint) to CircleCI tests
-- Fix TFLint issues
-- Use DateTime stamp for report file name
+    - Fix TFLint issues
 - Schedule lambda to generate reports every night
+- Add encryption to the S3 bucket
 - Handle AMIs with multiple snapshots
-- Parameterize
