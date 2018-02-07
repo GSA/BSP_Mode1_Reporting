@@ -35,7 +35,6 @@ resource "aws_iam_policy" "policy_for_ami_lambda" {
     {
       "Action": [
         "ec2:DescribeImages",
-        "s3:PutObject",
         "sts:AssumeRole",
         "logs:CreateLogGroup",
         "logs:CreateLogStream",
@@ -43,6 +42,13 @@ resource "aws_iam_policy" "policy_for_ami_lambda" {
       ],
       "Effect": "Allow",
       "Resource": "*"
+    },
+    {
+      "Action": [
+        "s3:PutObject"
+      ],
+      "Effect": "Allow",
+      "Resource": "${aws_s3_bucket.ami_report.arn}/*"
     }
   ]
 }

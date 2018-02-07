@@ -33,13 +33,19 @@ resource "aws_iam_policy" "policy_for_ses_lambda" {
     {
       "Action": [
         "ses:SendRawEmail",
-        "s3:GetObject",
         "logs:CreateLogGroup",
         "logs:CreateLogStream",
         "logs:PutLogEvents"
       ],
       "Effect": "Allow",
       "Resource": "*"
+    },
+    {
+      "Action": [
+        "s3:GetObject"
+      ],
+      "Effect": "Allow",
+      "Resource": "${aws_s3_bucket.ami_report.arn}/*"
     }
   ]
 }
