@@ -39,7 +39,7 @@ action allowed.
 ### AMI Report Lambda Function IAM Policy ###
 
 The Lambda function which creates the AMI Report is assinged an IAM role in the
-management account with a single policy attached that allows it do perform all
+management account with a single policy attached that allows it to perform all
 of its necessary functions.
 
 ```json
@@ -80,8 +80,8 @@ are required by all Lambda functions to log their actions.
 ### Report Emailing Lambda Function IAM Policy ###
 
 The Lambda function which Emails the AMI Report is assinged an IAM role in the
-management account with a single policy attached that allows it do perform all of
-its necessary functions.
+management account with a single policy attached that allows it to perform all
+of its necessary functions.
 
 ```json
 "Statement": [
