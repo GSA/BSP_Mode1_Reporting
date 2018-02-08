@@ -46,6 +46,13 @@ resource "aws_iam_policy" "policy_for_ses_lambda" {
       ],
       "Effect": "Allow",
       "Resource": "${aws_s3_bucket.ami_report.arn}/*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "kms:Decrypt"
+      ],
+      "Resource": "${aws_kms_key.ami_report_key.arn}"
     }
   ]
 }
@@ -75,8 +82,9 @@ resource "aws_lambda_function" "mail_report" {
 
   environment {
     variables = {
-      sender     = "${var.sender}"
-      recipients = "${var.recipients}"
+      sender            = "${var.sender}"
+      recipients        = "${var.recipients}"
+      ami_report_key_id = "${aws_kms_key.ami_report_key.key_id}"
     }
   }
 }
