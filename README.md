@@ -47,7 +47,6 @@ of its necessary functions.
   {
     "Action": [
       "ec2:DescribeImages",
-      "s3:PutObject",
       "sts:AssumeRole",
       "logs:CreateLogGroup",
       "logs:CreateLogStream",
@@ -55,6 +54,13 @@ of its necessary functions.
     ],
     "Effect": "Allow",
     "Resource": "*"
+  },
+  {
+    "Action": [
+      "s3:PutObject"
+    ],
+    "Effect": "Allow",
+    "Resource": "${aws_s3_bucket.ami_report.arn}/*"
   }
 ]
 ```
@@ -88,13 +94,19 @@ of its necessary functions.
   {
     "Action": [
       "ses:SendRawEmail",
-      "s3:GetObject",
       "logs:CreateLogGroup",
       "logs:CreateLogStream",
       "logs:PutLogEvents"
     ],
     "Effect": "Allow",
     "Resource": "*"
+  },
+  {
+    "Action": [
+      "s3:GetObject"
+    ],
+    "Effect": "Allow",
+    "Resource": "${aws_s3_bucket.ami_report.arn}/*"
   }
 ]
 ```
