@@ -24,46 +24,11 @@ configuration](tenants/iam.tf#L3) for details.
 Attached to the tenant IAM role is a single policy with `ec2:DescribeImages`
 action allowed.
 
-```
-"Statement": [
-  {
-    "Action": [
-      "ec2:DescribeImages"
-    ],
-    "Effect": "Allow",
-    "Resource": "*"
-  }
-]
-```
-
 ### AMI Report Lambda Function IAM Policy ###
 
 The Lambda function which creates the AMI Report is assinged an IAM role in the
 management account with a single policy attached that allows it to perform all
 of its necessary functions.
-
-```json
-"Statement": [
-  {
-    "Action": [
-      "ec2:DescribeImages",
-      "sts:AssumeRole",
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:PutLogEvents"
-    ],
-    "Effect": "Allow",
-    "Resource": "*"
-  },
-  {
-    "Action": [
-      "s3:PutObject"
-    ],
-    "Effect": "Allow",
-    "Resource": "${aws_s3_bucket.ami_report.arn}/*"
-  }
-]
-```
 
 ####  ec2:DescribeImages ####
 
@@ -78,6 +43,10 @@ Allows the Lambda function to write the CSV report to an S3 bucket
 Allows the Lambda function to assume the delegated tenant IAM role and query
 `DescribeImages` in the tenant accounts.
 
+#### kms:Encrypt ####
+
+Allows the Lambda function to encrypt the CSV report it saves to the S3 bucket.
+
 #### logs:CreateLogGroup, etc. ####
 
 `logs:CreateLogGroup`, `logs:CreateLogStream` and `logs:PutLogEvents` actions
@@ -89,28 +58,6 @@ The Lambda function which Emails the AMI Report is assinged an IAM role in the
 management account with a single policy attached that allows it to perform all
 of its necessary functions.
 
-```json
-"Statement": [
-  {
-    "Action": [
-      "ses:SendRawEmail",
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:PutLogEvents"
-    ],
-    "Effect": "Allow",
-    "Resource": "*"
-  },
-  {
-    "Action": [
-      "s3:GetObject"
-    ],
-    "Effect": "Allow",
-    "Resource": "${aws_s3_bucket.ami_report.arn}/*"
-  }
-]
-```
-
 #### ses:SendRawEmail ####
 
 Allows Lambda function to send Email via Amazon SES.
@@ -118,6 +65,10 @@ Allows Lambda function to send Email via Amazon SES.
 #### s3:GetObject ####
 
 Allows Lambda function to read the report from an Amazon S3 bucket.
+
+#### kms:Decrypt ####
+
+Allows the Lambda function to decrypt the CSV report.
 
 #### logs:CreateLogGroup, etc. ####
 
@@ -163,5 +114,4 @@ the Terraform configuration.
     - Add [TFLint](https://github.com/wata727/tflint) to CircleCI tests
     - Fix TFLint issues
 - Schedule lambda to generate reports every night
-- Add encryption to the S3 bucket
 - Handle AMIs with multiple snapshots

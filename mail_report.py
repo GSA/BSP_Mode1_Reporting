@@ -5,6 +5,9 @@ from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 
+# Constants
+KEY_ID = os.environ['ami_report_key_id']
+
 def lambda_handler(event, context):
     ses = boto3.client('ses')
     s3 = boto3.resource('s3')

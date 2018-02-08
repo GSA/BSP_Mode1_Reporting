@@ -9,6 +9,7 @@ MGMT_ACCOUNT_ALIAS = os.environ['mgmt_account_alias']
 TENANT_ACCOUNTS = os.environ['tenant_accounts'].split(',')
 TENANT_NAMES = os.environ['tenant_names'].split(',')
 TENANTS = {k:v for k, v in zip(TENANT_NAMES, TENANT_ACCOUNTS)}
+KEY_ID = os.environ['ami_report_key_id']
 TODAY = datetime.datetime.today().strftime('%Y-%m-%d')
 REPORT_NAME = 'ami_report_' + TODAY + '.csv'
 CSV_HEADING = ('Tenant,Name,ImageId,State,CreationDate,'
@@ -60,7 +61,12 @@ def lambda_handler(event, context):
 
         # Save csv to S3 Bucket
         s3 = boto3.resource('s3')
-        s3.Bucket(BUCKET).put_object(Key=REPORT_NAME, Body=create_csv(images))
+        s3.Bucket(BUCKET).put_object(
+            Key=REPORT_NAME,
+            Body=create_csv(images),
+            ServerSideEncryption='aws:kms',
+            SSEKMSKeyId=KEY_ID
+        )
     except ClientError as e:
         print(e.response['Error']['Message'])
     else:
