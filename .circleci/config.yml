@@ -9,6 +9,9 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Copy tfvars
+          command: cp terraform.tfvars.example terraform.tfvars
+      - run:
           name: Set up Terraform
           command: terraform init
       - run:
@@ -17,8 +20,3 @@ jobs:
       - run:
           name: Validate Terraform
           command: terraform validate
-workflows:
-  version: 2
-  build:
-    jobs:
-      - build
