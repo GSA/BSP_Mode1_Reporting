@@ -1,3 +1,5 @@
+variable "mgmt_account" {}
+
 variable "mgmt_account_alias" {}
 
 variable "tenant_accounts" {}
@@ -100,7 +102,7 @@ resource "aws_kms_key" "ami_report_key" {
       "Sid": "Enable IAM User Permissions",
       "Effect": "Allow",
       "Principal": {
-        "AWS": "arn:aws:iam::569330259623:root"
+        "AWS": "arn:aws:iam::${mgmt_account}:root"
       },
       "Action": "kms:*",
       "Resource": "*"

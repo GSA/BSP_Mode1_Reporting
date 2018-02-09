@@ -78,6 +78,9 @@ are required by all Lambda functions to log their actions.
 ## Terraform Variables ##
 
 - Copy the `terraform.tfvars.example` file to `terraform.tfvars`
+- Set the `mgmt_account` variable to the account number of the account where the
+AMI reporting Lambda function will run.  For instructions on how to find the
+AWS account number, see the [AWS docs here](https://docs.aws.amazon.com/IAM/latest/UserGuide/console_account-alias.html).
 - The `mgmt_account_alias` is the name which will appear in the 'Tenant' column
 of the AMI report for the AMIs in the management account.
 - Set the `tenant_accounts` to a comma separated list of the AWS account numbers
