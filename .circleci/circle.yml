@@ -17,3 +17,8 @@ jobs:
       - run:
           name: Validate Terraform
           command: terraform validate
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build
