@@ -102,7 +102,7 @@ resource "aws_kms_key" "ami_report_key" {
       "Sid": "Enable IAM User Permissions",
       "Effect": "Allow",
       "Principal": {
-        "AWS": "arn:aws:iam::${mgmt_account}:root"
+        "AWS": "arn:aws:iam::${var.mgmt_account}:root"
       },
       "Action": "kms:*",
       "Resource": "*"
