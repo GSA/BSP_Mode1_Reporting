@@ -65,7 +65,8 @@ def lambda_handler(event, context):
             Key=REPORT_NAME,
             Body=create_csv(images),
             ServerSideEncryption='aws:kms',
-            SSEKMSKeyId=KEY_ID
+            SSEKMSKeyId=KEY_ID,
+            StorageClass='REDUCED_REDUNDANCY'
         )
     except ClientError as e:
         print(e.response['Error']['Message'])

@@ -147,6 +147,15 @@ resource "aws_s3_bucket" "ami_report" {
     }
   }
 
+  lifecycle_rule {
+    id      = "delete"
+    enabled = true
+
+    expiration {
+      days = 7
+    }
+  }
+
   tags {
     Name = "AMI Report"
   }
