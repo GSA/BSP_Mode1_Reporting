@@ -1,4 +1,4 @@
-# ami-report #
+# BSP Mode1 Reporting [![CircleCI](https://circleci.com/gh/GSA/BSP_Mode1_Reporting.svg?style=shield)](https://circleci.com/gh/GSA/BSP_Mode1_Reporting)
 
 AMI report using Lambda functions and Amazon SES
 
