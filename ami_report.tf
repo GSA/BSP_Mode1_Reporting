@@ -37,13 +37,19 @@ resource "aws_iam_policy" "policy_for_ami_lambda" {
     {
       "Action": [
         "ec2:DescribeImages",
-        "sts:AssumeRole",
         "logs:CreateLogGroup",
         "logs:CreateLogStream",
         "logs:PutLogEvents"
       ],
       "Effect": "Allow",
       "Resource": "*"
+    },
+    {
+      "Action": [
+        "sts:AssumeRole"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:iam::*:role/AMI_Reporting"
     },
     {
       "Action": [
@@ -55,8 +61,7 @@ resource "aws_iam_policy" "policy_for_ami_lambda" {
     {
       "Effect": "Allow",
       "Action": [
-        "kms:Encrypt",
-        "kms:Decrypt"
+        "kms:Encrypt"
       ],
       "Resource": "${aws_kms_key.ami_report_key.arn}"
     }
