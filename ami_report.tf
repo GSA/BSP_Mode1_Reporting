@@ -95,6 +95,26 @@ resource "aws_lambda_function" "ami_report" {
   }
 }
 
+resource "aws_cloudwatch_event_rule" "every_weekday_0023" {
+  name                = "every-weekday-0023"
+  description         = "Fires Monday - Friday at 0023Z"
+  schedule_expression = "cron(0 23 ? * MON-FRI *)"
+}
+
+resource "aws_cloudwatch_event_target" "check_amis_every_weekday" {
+  rule      = "${aws_cloudwatch_event_rule.every_weekday_0023.name}"
+  target_id = "ami_report"
+  arn       = "${aws_lambda_function.ami_report.arn}"
+}
+
+resource "aws_lambda_permission" "allow_cloudwatch_to_call_ami_report" {
+  statement_id  = "AllowExecutionFromCloudWatch"
+  action        = "lambda:InvokeFunction"
+  function_name = "${aws_lambda_function.ami_report.function_name}"
+  principal     = "events.amazonaws.com"
+  source_arn    = "${aws_cloudwatch_event_rule.every_weekday_0023.arn}"
+}
+
 resource "aws_kms_key" "ami_report_key" {
   description             = "Key for BSP Mode1 AMI Report S3 bucket"
   deletion_window_in_days = 7
