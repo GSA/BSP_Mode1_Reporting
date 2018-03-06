@@ -4,11 +4,11 @@ variable "tenant_aws_profile" {}
 
 provider "aws" {
   profile = "${var.tenant_aws_profile}"
-  alias = "subaccount"
+  alias   = "subaccount"
 }
 
 resource "aws_iam_role" "for_crossaccount_ami_reporting" {
-  name = "AMI_Reporting"
+  name     = "AMI_Reporting"
   provider = "aws.subaccount"
 
   assume_role_policy = <<EOF
@@ -31,7 +31,7 @@ EOF
 resource "aws_iam_policy" "for_crossaccount_ami_reporting" {
   name        = "policy_for_crossaccount_ami_reporting"
   description = "Policy to allow cross-account AMI reporting"
-  provider = "aws.subaccount"
+  provider    = "aws.subaccount"
 
   policy = <<EOF
 {
@@ -52,5 +52,5 @@ EOF
 resource "aws_iam_role_policy_attachment" "test-ami-attach" {
   role       = "${aws_iam_role.for_crossaccount_ami_reporting.name}"
   policy_arn = "${aws_iam_policy.for_crossaccount_ami_reporting.arn}"
-  provider = "aws.subaccount"
+  provider   = "aws.subaccount"
 }
