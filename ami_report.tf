@@ -6,6 +6,8 @@ variable "tenant_accounts" {}
 
 variable "tenant_names" {}
 
+variable "schedule_expression" {}
+
 resource "aws_iam_role" "iam_for_ami_lambda" {
   name = "iam_for_ami_lambda"
 
@@ -95,14 +97,14 @@ resource "aws_lambda_function" "ami_report" {
   }
 }
 
-resource "aws_cloudwatch_event_rule" "every_weekday_0305Z" {
-  name                = "every-weekday-0305Z"
-  description         = "Fires Monday - Friday at 0305Z"
-  schedule_expression = "cron(5 3 ? * MON-FRI *)"
+resource "aws_cloudwatch_event_rule" "ami_report_event_rule" {
+  name                = "ami_report_event_rule"
+  description         = "Triggers ami_report Lambda function according to schedule expression"
+  schedule_expression = "${var.schedule_expression}"
 }
 
-resource "aws_cloudwatch_event_target" "check_amis_every_weekday" {
-  rule      = "${aws_cloudwatch_event_rule.every_weekday_0305Z.name}"
+resource "aws_cloudwatch_event_target" "ami_report_event_target" {
+  rule      = "${aws_cloudwatch_event_rule.ami_report_event_rule.name}"
   target_id = "ami_report"
   arn       = "${aws_lambda_function.ami_report.arn}"
 }
@@ -112,7 +114,7 @@ resource "aws_lambda_permission" "allow_cloudwatch_to_call_ami_report" {
   action        = "lambda:InvokeFunction"
   function_name = "${aws_lambda_function.ami_report.function_name}"
   principal     = "events.amazonaws.com"
-  source_arn    = "${aws_cloudwatch_event_rule.every_weekday_0305Z.arn}"
+  source_arn    = "${aws_cloudwatch_event_rule.ami_report_event_rule.arn}"
 }
 
 resource "aws_kms_key" "ami_report_key" {
