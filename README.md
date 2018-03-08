@@ -93,6 +93,7 @@ names must be in the exact same order as the corresponding account number in
 Note: This address must be [verified](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html) for use by SES.
 - Set the `recipients` to a comma separated list of the Email addresses you wish
 to receive the report.  Note: These addresses must be [verified](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html) for use by SES.
+- Set the `schedule_expression` to an valid rate or cron schedule expression such as `cron(5 3 ? * MON-FRI *)`. For more information, see the [AWS Documentation](https://docs.aws.amazon.com/lambda/latest/dg/with-scheduled-events.html) or [tutorial](https://docs.aws.amazon.com/lambda/latest/dg/tutorial-scheduled-events-schedule-expressions.html)
 
 ### Tenants ###
 
@@ -116,5 +117,4 @@ the Terraform configuration.
     - Fix pylint issues
     - Add [TFLint](https://github.com/wata727/tflint) to CircleCI tests
     - Fix TFLint issues
-- Schedule lambda to generate reports every night
 - Handle AMIs with multiple snapshots
