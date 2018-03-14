@@ -1,7 +1,15 @@
+"""
+Lambda function for creating daily AMI Report
+
+Creates a CSV report of all Amazon Machine Images (AMI) in each account listed
+in the `tenant_accounts` environment variable and saves it to the S3 bucket
+specified in the `ami_report_s3_bucket` environment variable
+"""
 import os
-import boto3
 import datetime
+import json
 from botocore.exceptions import ClientError
+import boto3
 
 # Constants
 BUCKET = os.environ['ami_report_s3_bucket']
@@ -13,23 +21,25 @@ KEY_ID = os.environ['ami_report_key_id']
 TODAY = datetime.datetime.today().strftime('%Y-%m-%d')
 REPORT_NAME = 'ami_report_' + TODAY + '.csv'
 CSV_HEADING = ('Tenant,Name,ImageId,State,CreationDate,'
-'RootDeviceType,RootDeviceName,SnapshotId')
+               'RootDeviceType,RootDeviceName,SnapshotId')
 
 def create_csv(images):
+    """Converts the image info into a CSV string"""
     csv = CSV_HEADING
     for tenant in sorted(images.keys()):
         for image in images[tenant]:
             csv += ("\r\n" + tenant +
-             "," + image['Name'] +
-             "," + image['ImageId'] +
-             "," + image['State'] +
-             "," + image['CreationDate'] +
-             "," + image['RootDeviceType'] +
-             "," + image['RootDeviceName'] +
-             "," + image['BlockDeviceMappings'][0]['Ebs']['SnapshotId'])
+                    "," + image['Name'] +
+                    "," + image['ImageId'] +
+                    "," + image['State'] +
+                    "," + image['CreationDate'] +
+                    "," + image['RootDeviceType'] +
+                    "," + image['RootDeviceName'] +
+                    "," + image['BlockDeviceMappings'][0]['Ebs']['SnapshotId'])
     return csv
 
 def get_tenant_ec2_client(sts, name, account):
+    """Gets AWS API EC2 client for the AWS account"""
     role_arn = "arn:aws:iam::" + account + ":role/AMI_Reporting"
     role_session = name + "_session"
     resp = sts.assume_role(
@@ -45,6 +55,8 @@ def get_tenant_ec2_client(sts, name, account):
     return ec2
 
 def lambda_handler(event, context):
+    """Lambda function handler to create BSP AMI Report"""
+    del context, event # Unused
     try:
         images = {}
         # Get Mgmt Account Images
@@ -60,19 +72,19 @@ def lambda_handler(event, context):
             images[name] = resp['Images']
 
         # Save csv to S3 Bucket
-        s3 = boto3.resource('s3')
-        s3.Bucket(BUCKET).put_object(
+        s3_res = boto3.resource('s3')
+        s3_res.Bucket(BUCKET).put_object(
             Key=REPORT_NAME,
             Body=create_csv(images),
             ServerSideEncryption='aws:kms',
             SSEKMSKeyId=KEY_ID,
             StorageClass='REDUCED_REDUNDANCY'
         )
-    except ClientError as e:
-        print(e.response['Error']['Message'])
+    except ClientError as err:
+        print err.response['Error']['Message']
     else:
-        print("Report Saved: " + BUCKET + "/" + REPORT_NAME)
+        print "Report Saved: " + BUCKET + "/" + REPORT_NAME
 
 if __name__ == "__main__":
-    json_content = json.loads(open('event.json', 'r').read())
-    lambda_handler(json_content, None)
+    JSON_CONTENT = json.loads(open('event.json', 'r').read())
+    lambda_handler(JSON_CONTENT, None)
