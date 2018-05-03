@@ -81,9 +81,9 @@ def lambda_handler(event, context):
             StorageClass='REDUCED_REDUNDANCY'
         )
     except ClientError as err:
-        print err.response['Error']['Message']
+        print(err.response['Error']['Message'])
     else:
-        print "Report Saved: " + BUCKET + "/" + REPORT_NAME
+        print("Report Saved: " + BUCKET + "/" + REPORT_NAME)
 
 if __name__ == "__main__":
     JSON_CONTENT = json.loads(open('event.json', 'r').read())
