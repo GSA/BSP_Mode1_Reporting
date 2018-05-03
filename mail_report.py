@@ -62,9 +62,9 @@ def lambda_handler(event, context):
         )
     # Display an error if something goes wrong.
     except ClientError as err:
-        print err.response['Error']['Message']
+        print(err.response['Error']['Message'])
     else:
-        print "Email sent!"
+        print("Email sent!")
 
 if __name__ == "__main__":
     JSON_CONTENT = json.loads(open('event.json', 'r').read())
