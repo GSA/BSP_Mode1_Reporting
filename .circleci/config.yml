@@ -1,22 +1,53 @@
 version: 2
-jobs:
+
+workflows:
+  version: 2
+
   build:
+    jobs:
+      - build_terraform
+      - build_pylint
+
+jobs:
+  build_terraform:
     docker:
-      - image: hashicorp/terraform:light
-    environment:
-      # arbitrary value
-      AWS_DEFAULT_REGION: us-east-1
+      - image: hashicorp/terraform
+        environment:
+          AWS_DEFAULT_REGION: us-east-1
     steps:
       - checkout
       - run:
-          name: Copy tfvars
+          name:  Set up Terraform - Mgmt Account
+          command: terraform init -backend=false
+      - run:
+          name: Copy example variables - Mgmt Account
           command: cp terraform.tfvars.example terraform.tfvars
       - run:
-          name: Set up Terraform
-          command: terraform init
+          name: Validate Terraform - Mgmt Account
+          command: terraform validate -check-variables=false
       - run:
-          name: Check Terraform file format
-          command: terraform fmt
+          name: Set up Terraform - Tenant Account
+          command: cd tenants && terraform init -backend=false
       - run:
-          name: Validate Terraform
-          command: terraform validate
+          name: Copy example variables - Tenant Account
+          command: cd tenants && cp terraform.tfvars.example terraform.tfvars
+      - run:
+          name: Validate Terraform - Tenant Account
+          command: cd tenants && terraform validate -check-variables=false
+  build_pylint:
+    docker:
+      - image: circleci/python:3.6.4
+    steps:
+      - checkout
+      - run:
+          name: install pylint
+          command: sudo pip install pylint
+      - run:
+          name: install boto3
+          command: sudo pip install boto3
+      - run:
+          name: pylint - linting on ami_report function
+          command: pylint ami_report.py
+      - run:
+          name: pylint - linting on mail_report function
+          command: pylint mail_report.py
