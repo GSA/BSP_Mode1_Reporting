@@ -43,6 +43,9 @@ jobs:
           name: install pylint
           command: sudo pip install pylint
       - run:
+          name: install boto3
+          command: sudo pip install boto3
+      - run:
           name: pylint - linting on ami_report function
           command: pylint ami_report.py
       - run:
