@@ -19,9 +19,9 @@ TODAY = datetime.datetime.today().strftime('%Y-%m-%d')
 def get_header(key):
     """Returns eMail header based on file name"""
     if key.startswith('ami_report_'):
-        return 'AWS Machine Image (AMI) Report'
+        return 'BSP Mode1 AWS Machine Image (AMI) Report'
     if key.startswith('snapshot_report_'):
-        return 'AWS Snapshot Report'
+        return 'BSP Mode1 Snapshot Report'
     return 'Report from Lambda Function'
 
 def get_subject(key):
@@ -32,9 +32,8 @@ def get_subject(key):
         return "BSP Mode1 Snapshot Report - " + TODAY
     return "BSP Mode1 Report - " + TODAY
 
-def lambda_handler(event, context):
+def mail_report(event):
     """Handler function for Lambda function to mail AMI Report"""
-    del context # Unused
     ses = boto3.client('ses')
     s3_res = boto3.resource('s3')
     s3_key = event['Records'][0]['s3']['object']['key']
@@ -84,6 +83,14 @@ def lambda_handler(event, context):
         print(err.response['Error']['Message'])
     else:
         print("Email sent!")
+
+def lambda_handler(event, context):
+    """Handler function for Lambda function to determine if CSV"""
+    del context # Unused
+    if event['Records'][0]['s3']['object']['key'].endswith('.csv'):
+        mail_report(event)
+    else:
+        print(event['Records'][0]['s3']['object']['key'] + " not a CSV file")
 
 if __name__ == "__main__":
     JSON_CONTENT = json.loads(open('event.json', 'r').read())
