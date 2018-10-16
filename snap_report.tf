@@ -8,8 +8,8 @@ variable "tenant_names" {}
 
 variable "schedule_expression" {}
 
-resource "aws_iam_role" "iam_for_snapshot_lambda" {
-  name = "iam_for_snapshot_lambda"
+resource "aws_iam_role" "snapshot_lambda_iam_role" {
+  name = "snapshot-lambda"
 
   assume_role_policy = <<EOF
 {
@@ -28,8 +28,8 @@ resource "aws_iam_role" "iam_for_snapshot_lambda" {
 EOF
 }
 
-resource "aws_iam_policy" "policy_for_snapshot_lambda" {
-  name        = "policy_for_snapshot_lambda"
+resource "aws_iam_policy" "snapshot_lambda_iam_policy" {
+  name        = "snapshot-lambda"
   description = "Policy to allow creating Snapshot report"
 
   policy = <<EOF
@@ -51,7 +51,7 @@ resource "aws_iam_policy" "policy_for_snapshot_lambda" {
         "sts:AssumeRole"
       ],
       "Effect": "Allow",
-      "Resource": "arn:aws:iam::*:role/Snapshot_Reporting"
+      "Resource": "arn:aws:iam::*:role/snapshot-reporting"
     },
     {
       "Action": [

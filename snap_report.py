@@ -23,10 +23,17 @@ TODAY = datetime.datetime.today().strftime('%Y-%m-%d')
 REPORT_NAME = 'snapshot_report_' + TODAY + '.csv'
 CSV_HEADING = ('Tenant,Name,SnapshotId,Description,State,StartTime,'
                'VolumeId,VolumeSize,SnapshotId')
+EMPTY_TAGS_DICT = {
+    'Name': '',
+    'SnapshotRetentionPeriod': '',
+    'CostControl': '',
+    'SnapshotSet': '',
+    'POC': ''
+}
 
 def tags_to_dict(tags):
     """Converts array of Key, Value objects into a dictionary"""
-    tags_dict = {}
+    tags_dict = EMPTY_TAGS_DICT
     for tag in tags:
         tags_dict[tag['Key']] = tag['Value']
     return tags_dict
@@ -36,15 +43,18 @@ def create_csv(snapshots):
     csv = CSV_HEADING
     for tenant in sorted(snapshots.keys()):
         for snapshot in snapshots[tenant]:
-            tags_dict = tags_to_dict(snapshot['tags'])
+            if "Tags" in snapshot:
+                tags_dict = tags_to_dict(snapshot['Tags'])
+            else:
+                tags_dict = EMPTY_TAGS_DICT
             csv += ("\r\n" + tenant +
                     "," + tags_dict['Name'] +
                     "," + snapshot['SnapshotId'] +
                     "," + snapshot['Description'] +
                     "," + snapshot['State'] +
-                    "," + snapshot['StartTime'] +
+                    "," + snapshot['StartTime'].strftime("%B %d, %Y") +
                     "," + snapshot['VolumeId'] +
-                    "," + snapshot['VolumeSize'] +
+                    "," + str(snapshot['VolumeSize']) +
                     "," + tags_dict['SnapshotRetentionPeriod'] +
                     "," + tags_dict['CostControl'] +
                     "," + tags_dict['SnapshotSet'] +
@@ -53,7 +63,7 @@ def create_csv(snapshots):
 
 def get_tenant_ec2_client(sts, name, account):
     """Gets AWS API EC2 client for the AWS account"""
-    role_arn = "arn:aws:iam::" + account + ":role/Snapshot_Reporting"
+    role_arn = "arn:aws:iam::" + account + ":role/snapshot-reporting"
     role_session = name + "_session"
     resp = sts.assume_role(
         RoleArn=role_arn,

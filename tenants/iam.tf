@@ -7,8 +7,8 @@ provider "aws" {
   alias   = "subaccount"
 }
 
-resource "aws_iam_role" "for_crossaccount_ami_reporting" {
-  name     = "AMI_Reporting"
+resource "aws_iam_role" "ami_reporting_iam_role" {
+  name     = "ami-reporting"
   provider = "aws.subaccount"
 
   assume_role_policy = <<EOF
@@ -28,8 +28,8 @@ resource "aws_iam_role" "for_crossaccount_ami_reporting" {
 EOF
 }
 
-resource "aws_iam_policy" "for_crossaccount_ami_reporting" {
-  name        = "policy_for_crossaccount_ami_reporting"
+resource "aws_iam_policy" "ami_reporting_iam_policy" {
+  name        = "ami-reporting"
   description = "Policy to allow cross-account AMI reporting"
   provider    = "aws.subaccount"
 
@@ -49,8 +49,56 @@ resource "aws_iam_policy" "for_crossaccount_ami_reporting" {
 EOF
 }
 
-resource "aws_iam_role_policy_attachment" "test-ami-attach" {
-  role       = "${aws_iam_role.for_crossaccount_ami_reporting.name}"
-  policy_arn = "${aws_iam_policy.for_crossaccount_ami_reporting.arn}"
+resource "aws_iam_role_policy_attachment" "ami_reporting_iam_role_policy_attachment" {
+  role       = "${aws_iam_role.ami_reporting_iam_role.name}"
+  policy_arn = "${aws_iam_policy.ami_reporting_iam_policy.arn}"
+  provider   = "aws.subaccount"
+}
+
+resource "aws_iam_role" "snapshot_reporting_iam_role" {
+  name     = "snapshot-reporting"
+  provider = "aws.subaccount"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "AWS": "arn:aws:iam::${var.mgmt_account}:root"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_policy" "snapshot_reporting_iam_policy" {
+  name        = "snapshot-reporting"
+  description = "Policy to allow cross-account snapshot reporting"
+  provider    = "aws.subaccount"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "ec2:DescribeSnapshots"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "snapshot_reporting_iam_role_policy_attachment" {
+  role       = "${aws_iam_role.snapshot_reporting_iam_role.name}"
+  policy_arn = "${aws_iam_policy.snapshot_reporting_iam_policy.arn}"
   provider   = "aws.subaccount"
 }
