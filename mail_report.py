@@ -22,7 +22,7 @@ def get_header(key):
         return 'BSP Mode1 AWS Machine Image (AMI) Report'
     if key.startswith('snapshot_report_'):
         return 'BSP Mode1 Snapshot Report'
-    return 'Report from Lambda Function'
+    return 'BSP Mode1 AWS Inventory Report from Lambda Function - ' + key
 
 def get_subject(key):
     """Returns eMail subject based on file name"""
@@ -30,7 +30,7 @@ def get_subject(key):
         return "BSP Mode1 AMI Report - " + TODAY
     if key.startswith('snapshot_report_'):
         return "BSP Mode1 Snapshot Report - " + TODAY
-    return "BSP Mode1 Report - " + TODAY
+    return "BSP Mode1 Inventory Report - " + key
 
 def mail_report(event):
     """Handler function for Lambda function to mail AMI Report"""
