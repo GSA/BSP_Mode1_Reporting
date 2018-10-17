@@ -1,13 +1,3 @@
-variable "mgmt_account" {}
-
-variable "mgmt_account_alias" {}
-
-variable "tenant_accounts" {}
-
-variable "tenant_names" {}
-
-variable "schedule_expression" {}
-
 resource "aws_iam_role" "snapshot_lambda_iam_role" {
   name = "snapshot-lambda"
 
@@ -73,14 +63,14 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "attach_snapshot_report" {
-  role       = "${aws_iam_role.iam_for_snapshot_lambda.name}"
-  policy_arn = "${aws_iam_policy.policy_for_snapshot_lambda.arn}"
+  role       = "${aws_iam_role.snapshot_lambda_iam_role.name}"
+  policy_arn = "${aws_iam_policy.snapshot_lambda_iam_policy.arn}"
 }
 
 resource "aws_lambda_function" "snapshot_report" {
   filename         = "snapshot_report.zip"
   function_name    = "snapshot_report"
-  role             = "${aws_iam_role.iam_for_snapshot_lambda.arn}"
+  role             = "${aws_iam_role.snapshot_lambda_iam_role.arn}"
   handler          = "snapshot_report.lambda_handler"
   source_code_hash = "${base64sha256(file("snapshot_report.py"))}"
   runtime          = "python3.6"
@@ -139,7 +129,7 @@ resource "aws_kms_key" "snapshot_report_key" {
       "Effect": "Allow",
       "Principal": {
         "AWS": [
-          "${aws_iam_role.iam_for_snapshot_lambda.arn}",
+          "${aws_iam_role.snapshot_lambda_iam_role.arn}",
           "${aws_iam_role.iam_for_ses_lambda.arn}"
         ]
       },
