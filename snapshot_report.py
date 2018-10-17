@@ -21,8 +21,9 @@ TENANTS = {k:v for k, v in zip(TENANT_NAMES, TENANT_ACCOUNTS)}
 KEY_ID = os.environ['snapshot_report_key_id']
 TODAY = datetime.datetime.today().strftime('%Y-%m-%d')
 REPORT_NAME = 'snapshot_report_' + TODAY + '.csv'
-CSV_HEADING = ('Tenant,Name,SnapshotId,Description,State,StartTime,'
-               'VolumeId,VolumeSize,SnapshotId')
+CSV_HEADING = ('Tenant,Name,SnapshotId,Description,State,StartTime,' +
+               'VolumeId,VolumeSize,SnapshotRetionPeriod,CostControl,' +
+               'SnapshotSet,POC')
 EMPTY_TAGS_DICT = {
     'Name': '',
     'SnapshotRetentionPeriod': '',
@@ -33,32 +34,34 @@ EMPTY_TAGS_DICT = {
 
 def tags_to_dict(tags):
     """Converts array of Key, Value objects into a dictionary"""
-    tags_dict = EMPTY_TAGS_DICT
+    t_dict = {}
+    t_dict.update(EMPTY_TAGS_DICT)
     for tag in tags:
-        tags_dict[tag['Key']] = tag['Value']
-    return tags_dict
+        t_dict[tag['Key']] = tag['Value']
+    return t_dict
 
 def create_csv(snapshots):
     """Converts the snapshot info into a CSV string"""
     csv = CSV_HEADING
     for tenant in sorted(snapshots.keys()):
         for snapshot in snapshots[tenant]:
+            tags_dict = {}
+            tags_dict.update(EMPTY_TAGS_DICT)
             if "Tags" in snapshot:
-                tags_dict = tags_to_dict(snapshot['Tags'])
-            else:
-                tags_dict = EMPTY_TAGS_DICT
+                tags_dict.update(tags_to_dict(snapshot['Tags']))
             csv += ("\r\n" + tenant +
                     "," + tags_dict['Name'] +
                     "," + snapshot['SnapshotId'] +
                     "," + snapshot['Description'] +
                     "," + snapshot['State'] +
-                    "," + snapshot['StartTime'].strftime("%B %d, %Y") +
+                    "," + snapshot['StartTime'].isoformat() +
                     "," + snapshot['VolumeId'] +
                     "," + str(snapshot['VolumeSize']) +
                     "," + tags_dict['SnapshotRetentionPeriod'] +
                     "," + tags_dict['CostControl'] +
                     "," + tags_dict['SnapshotSet'] +
                     "," + tags_dict['POC'])
+            tags_dict.clear()
     return csv
 
 def get_tenant_ec2_client(sts, name, account):
@@ -86,14 +89,24 @@ def lambda_handler(event, context):
         ec2 = boto3.client('ec2')
         resp = ec2.describe_snapshots(OwnerIds=[MGMT_ACCOUNT_ID])
         snapshots[MGMT_ACCOUNT_ALIAS] = resp['Snapshots']
-
+    except ClientError as err:
+        print("**ERROR** Querying Mgmt account snapshots: " + err.response['Error']['Message'])
+    else:
+        print("Mgmt account snapshots queried")
+        
+    try:
         # Get Tenant Account Snapshots
         sts = boto3.client('sts')
         for name, account in TENANTS.items():
             ec2 = get_tenant_ec2_client(sts, name, account)
             resp = ec2.describe_snapshots(OwnerIds=[account])
             snapshots[name] = resp['Snapshots']
-
+    except ClientError as err:
+        print("**ERROR** Querying tenant " + name + " account snapshots: " + err.response['Error']['Message'])
+    else:
+        print("Tenant Account snapshots queried")
+    
+    try:
         # Save csv to S3 Bucket
         s3_res = boto3.resource('s3')
         s3_res.Bucket(BUCKET).put_object(
@@ -104,10 +117,11 @@ def lambda_handler(event, context):
             StorageClass='REDUCED_REDUNDANCY'
         )
     except ClientError as err:
-        print(err.response['Error']['Message'])
+        print("**ERROR** Saving report to S3 bucket (" + BUCKET + "/" + REPORT_NAME + "): " + err.response['Error']['Message'])
     else:
         print("Report Saved: " + BUCKET + "/" + REPORT_NAME)
 
 if __name__ == "__main__":
+    print('Here')
     JSON_CONTENT = json.loads(open('event.json', 'r').read())
     lambda_handler(JSON_CONTENT, None)
