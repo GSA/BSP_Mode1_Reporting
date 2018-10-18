@@ -29,6 +29,7 @@ resource "aws_iam_policy" "snapshot_lambda_iam_policy" {
     {
       "Action": [
         "ec2:DescribeSnapshots",
+		"ec2:DescribeImages",
         "logs:CreateLogGroup",
         "logs:CreateLogStream",
         "logs:PutLogEvents"

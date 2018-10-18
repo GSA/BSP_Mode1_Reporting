@@ -8,6 +8,7 @@ specified in the `snapshot_report_s3_bucket` environment variable
 import os
 import datetime
 import json
+import re
 from botocore.exceptions import ClientError
 import boto3
 
@@ -22,8 +23,8 @@ KEY_ID = os.environ['snapshot_report_key_id']
 TODAY = datetime.datetime.today().strftime('%Y-%m-%d')
 REPORT_NAME = 'snapshot_report_' + TODAY + '.csv'
 CSV_HEADING = ('Tenant,Name,SnapshotId,Description,State,StartTime,' +
-               'VolumeId,VolumeSize,SnapshotRetionPeriod,CostControl,' +
-               'SnapshotSet,POC')
+               'VolumeId,VolumeSize,ImageId,ImageStatus,' +
+               'SnapshotRetionPeriod,CostControl,SnapshotSet,POC')
 EMPTY_TAGS_DICT = {
     'Name': '',
     'SnapshotRetentionPeriod': '',
@@ -57,11 +58,14 @@ def create_csv(snapshots):
                     "," + snapshot['StartTime'].isoformat() +
                     "," + snapshot['VolumeId'] +
                     "," + str(snapshot['VolumeSize']) +
+                    "," + snapshot['ImageId'] +
+                    "," + snapshot['ImageStatus'] +
                     "," + tags_dict['SnapshotRetentionPeriod'] +
                     "," + tags_dict['CostControl'] +
                     "," + tags_dict['SnapshotSet'] +
                     "," + tags_dict['POC'])
             tags_dict.clear()
+
     return csv
 
 def get_tenant_ec2_client(sts, name, account):
@@ -79,6 +83,26 @@ def get_tenant_ec2_client(sts, name, account):
         aws_session_token=resp['Credentials']['SessionToken']
     )
     return ec2
+    
+def get_ami_status(ec2, snapshot_resp):
+    for snapshot in snapshot_resp['Snapshots']:
+        m = re.search('Created by CreateImage.* for (ami-\S*) from', snapshot['Description'])
+        if m == None:
+            snapshot['ImageId'] = ''
+            snapshot['ImageStatus'] = ''
+        else:
+            ami_id = m.group(1)
+            snapshot['ImageId'] = ami_id
+            try:
+                resp = ec2.describe_images(ImageIds=[ami_id])
+            except:
+                snapshot['ImageStatus'] = 'does not exist'
+            else:
+                if resp['Images']:
+                    snapshot['ImageStatus'] = resp['Images'][0]['State']
+                else:
+                    snapshot['ImageStatus'] = 'does not exist'
+    return snapshot_resp
 
 def lambda_handler(event, context):
     """Lambda function handler to create BSP Snapshot Report"""
@@ -100,6 +124,7 @@ def lambda_handler(event, context):
         for name, account in TENANTS.items():
             ec2 = get_tenant_ec2_client(sts, name, account)
             resp = ec2.describe_snapshots(OwnerIds=[account])
+            resp = get_ami_status(ec2,resp)
             snapshots[name] = resp['Snapshots']
     except ClientError as err:
         print("**ERROR** Querying tenant " + name + " account snapshots: " + err.response['Error']['Message'])

@@ -87,7 +87,8 @@ resource "aws_iam_policy" "snapshot_reporting_iam_policy" {
   "Statement": [
     {
       "Action": [
-        "ec2:DescribeSnapshots"
+        "ec2:DescribeSnapshots",
+		"ec2:DescribeImages"
       ],
       "Effect": "Allow",
       "Resource": "*"
