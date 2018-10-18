@@ -83,19 +83,20 @@ def get_tenant_ec2_client(sts, name, account):
         aws_session_token=resp['Credentials']['SessionToken']
     )
     return ec2
-    
+
 def get_ami_status(ec2, snapshot_resp):
+    """Parses AMI ID from description and checks if it exists"""
     for snapshot in snapshot_resp['Snapshots']:
-        m = re.search('Created by CreateImage.* for (ami-\S*) from', snapshot['Description'])
-        if m == None:
+        match = re.search(r'Created by CreateImage.* for (ami-\S*) from', snapshot['Description'])
+        if match is None:
             snapshot['ImageId'] = ''
             snapshot['ImageStatus'] = ''
         else:
-            ami_id = m.group(1)
+            ami_id = match.group(1)
             snapshot['ImageId'] = ami_id
             try:
                 resp = ec2.describe_images(ImageIds=[ami_id])
-            except:
+            except ClientError:
                 snapshot['ImageStatus'] = 'does not exist'
             else:
                 if resp['Images']:
@@ -117,20 +118,21 @@ def lambda_handler(event, context):
         print("**ERROR** Querying Mgmt account snapshots: " + err.response['Error']['Message'])
     else:
         print("Mgmt account snapshots queried")
-        
+
     try:
         # Get Tenant Account Snapshots
         sts = boto3.client('sts')
         for name, account in TENANTS.items():
             ec2 = get_tenant_ec2_client(sts, name, account)
             resp = ec2.describe_snapshots(OwnerIds=[account])
-            resp = get_ami_status(ec2,resp)
+            resp = get_ami_status(ec2, resp)
             snapshots[name] = resp['Snapshots']
     except ClientError as err:
-        print("**ERROR** Querying tenant " + name + " account snapshots: " + err.response['Error']['Message'])
+        print("**ERROR** Querying tenant " + name + " account snapshots: " +
+              err.response['Error']['Message'])
     else:
         print("Tenant Account snapshots queried")
-    
+
     try:
         # Save csv to S3 Bucket
         s3_res = boto3.resource('s3')
@@ -142,7 +144,9 @@ def lambda_handler(event, context):
             StorageClass='REDUCED_REDUNDANCY'
         )
     except ClientError as err:
-        print("**ERROR** Saving report to S3 bucket (" + BUCKET + "/" + REPORT_NAME + "): " + err.response['Error']['Message'])
+        print("**ERROR** Saving report to S3 bucket (" +
+              BUCKET + "/" + REPORT_NAME + "): " +
+              err.response['Error']['Message'])
     else:
         print("Report Saved: " + BUCKET + "/" + REPORT_NAME)
 
