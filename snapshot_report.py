@@ -113,6 +113,7 @@ def lambda_handler(event, context):
         # Get Mgmt Account Snapshots
         ec2 = boto3.client('ec2')
         resp = ec2.describe_snapshots(OwnerIds=[MGMT_ACCOUNT_ID])
+        resp = get_ami_status(ec2, resp)
         snapshots[MGMT_ACCOUNT_ALIAS] = resp['Snapshots']
     except ClientError as err:
         print("**ERROR** Querying Mgmt account snapshots: " + err.response['Error']['Message'])
